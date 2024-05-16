@@ -1,5 +1,9 @@
 import struct
 
+proto_sof = 0xAA
+crc8_init = 0x69
+crc16_init = 0x1389
+
 CRC8Table = [
     0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65,
     157, 195, 33, 127, 252, 162, 64, 30, 95, 1, 227, 189, 62, 96, 130, 220,
@@ -55,12 +59,22 @@ CRC16Table = [
 ]
 
 
-def crc8_chk(byte):
-    pass
+def crc8_chk(bytes):
+    crc8 = crc8_init
+    ret = 0
+    for byte in bytes:
+        ret = crc8 ^ byte
+        crc8 = CRC8Table[ret]
+    return crc8
 
 
-def crc16_chk(byte):
-    pass
+def crc16_chk(bytes):
+    crc16 = crc16_init
+    ret = 0
+    for byte in bytes:
+        ret = byte
+        crc16 = (crc16 >> 8 & 0xff) ^ CRC16Table[(0xff & crc16) ^ ret]
+    return crc16
 
 
 class ProtoMsg:
@@ -73,3 +87,38 @@ class ProtoMsg:
 
 class ProtoPack:
     pass
+
+
+"""
+---------------- test ------------------
+"""
+
+
+def crc_test():
+    # crc8
+    send8 = [1, 2, 3, 4, 5]
+    recv8 = [1, 2, 3, 4, 5]
+    crc = crc8_chk(send8)
+    recv8.append(crc)
+    ret = crc8_chk(recv8)
+    if not ret:
+        print('recv8 data SUCCEED')
+    else:
+        print('recv8 data ERROR')
+
+    # crc16
+    send16 = [1, 2, 3, 4, 5]
+    recv16 = [1, 2, 3, 4, 5]
+    crc = crc16_chk(send16)
+    recv16.append(crc & 0x00ff)
+    recv16.append((crc >> 8) & 0x00ff)
+    print(ret)
+    if not ret:
+        print('recv16 data SUCCEED')
+    else:
+        print('recv16 data ERROR')
+
+
+if __name__ == "__main__":
+    crc_test()
+    m = ProtoMsg()

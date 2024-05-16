@@ -1,5 +1,9 @@
 import serial
+import serial_proto as proto
 
-ser1 = serial.Serial("COM40", 115200)
+COM = "COM40"
 
-ser1.write("tttt".encode('utf-8'))
+
+ser1 = serial.Serial(COM, 115200)
+ser1.write("1424".encode('utf-8'))
+
